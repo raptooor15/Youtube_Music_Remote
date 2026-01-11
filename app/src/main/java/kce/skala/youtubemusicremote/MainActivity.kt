@@ -1,3 +1,6 @@
+// localhost:9863/swagger
+
+
 package kce.skala.youtubemusicremote
 
 import android.os.Bundle
@@ -38,11 +41,19 @@ fun RemoteControlScreen(vm: MainViewModel = viewModel()) {
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
+
+
     ) {
         TextField(value = vm.pcIp, onValueChange = { vm.pcIp = it }, label = { Text("IP PC") })
 
         Button(onClick = { vm.login() }, modifier = Modifier.padding(8.dp)) {
             Text(if (vm.token.isEmpty()) "Připojit (Získat Token)" else "Připojeno ✅")
+
+            Text(
+                text = vm.errorMessage,
+                color = androidx.compose.ui.graphics.Color.Red,
+                modifier = Modifier.padding(8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
