@@ -42,24 +42,19 @@ android {
 dependencies {
 
     dependencies {
-        // Základní Android komponenty pro XML layouty (řeší AppCompatActivity, ConstraintLayout)
         implementation("androidx.appcompat:appcompat:1.6.1")
         implementation("com.google.android.material:material:1.11.0")
         implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-
-        // ViewModel a LiveData (pro propojení kódu s XML)
         implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
         implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+        implementation("androidx.activity:activity-ktx:1.8.2") // Důležité pro Edge-to-Edge
 
-        // Retrofit (pro komunikaci s PC)
-        implementation("com.squareup.retrofit2:retrofit:2.9.0")
-        implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-        // Coil (pro zobrazování obrázků alb)
+        // Ikony a obrázky
+        implementation("androidx.compose.material:material-icons-extended:1.6.0")
         implementation("io.coil-kt:coil:2.5.0")
 
-        // Ikony (řeší chyby Unresolved reference SkipPrevious atd.)
-        implementation("androidx.compose.material:material-icons-extended:1.6.0")
+        implementation("com.squareup.retrofit2:retrofit:2.9.0")
+        implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     }
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
