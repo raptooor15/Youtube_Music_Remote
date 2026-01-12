@@ -1,78 +1,70 @@
-// localhost:9863/swagger
-
-
 package kce.skala.youtubemusicremote
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import kce.skala.youtubemusicremote.ui.theme.YoutubeMusicRemoteTheme
+import android.view.View
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import coil.load
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+class MainActivity : AppCompatActivity() {
+    private lateinit var vm: MainViewModel
 
-class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    RemoteControlScreen()
+        setContentView(R.layout.activity_main)
+
+        vm = ViewModelProvider(this)[MainViewModel::class.java]
+
+        val layoutConnect = findViewById<LinearLayout>(R.id.layout_connect)
+        val btnPlay = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.btn_play_pause)
+        val seekVolume = findViewById<SeekBar>(R.id.seek_volume)
+
+        // 1. SKRÝVÁNÍ PŘIPOJENÍ
+        vm.isConnected.observe(this) { connected ->
+            layoutConnect.visibility = if (connected) View.GONE else View.VISIBLE
+        }
+
+        // 2. LOGIKA PLAY/PAUSE IKONY
+        vm.currentSong.observe(this) { song ->
+            song?.let {
+                findViewById<TextView>(R.id.tv_title).text = it.title
+                findViewById<TextView>(R.id.tv_artist).text = it.artist
+                findViewById<ImageView>(R.id.iv_album_art).load(it.imageSrc)
+
+                // Pokud je PAUZNUTO, zobrazíme ikonu PLAY (trojúhelník)
+                // Pokud HRAJE, zobrazíme ikonu PAUSE (dvě čárky)
+                if (it.isPaused) {
+                    btnPlay.setImageResource(android.R.drawable.ic_media_play)
+                } else {
+                    btnPlay.setImageResource(android.R.drawable.ic_media_pause)
                 }
             }
         }
-    }
-}
 
-@Composable
-fun RemoteControlScreen(vm: MainViewModel = viewModel()) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-
-
-    ) {
-        TextField(value = vm.pcIp, onValueChange = { vm.pcIp = it }, label = { Text("IP PC") })
-
-        Button(onClick = { vm.login() }, modifier = Modifier.padding(8.dp)) {
-            Text(if (vm.token.isEmpty()) "Připojit (Získat Token)" else "Připojeno ✅")
-
-            Text(
-                text = vm.errorMessage,
-                color = androidx.compose.ui.graphics.Color.Red,
-                modifier = Modifier.padding(8.dp)
-            )
+        // 3. AKTUALIZACE SLIDERU Z PC DO MOBILU
+        vm.currentVolume.observe(this) { vol ->
+            seekVolume.progress = vol
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        // POSÍLÁNÍ HLASITOSTI Z MOBILU DO PC
+        seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
+                if (fromUser) { // Pouze pokud hýbe uživatel prstem
+                    vm.sendCommand { api, t -> api.setVolume(t, VolumeRequest(p)) }
+                }
+            }
+            override fun onStartTrackingTouch(s: SeekBar?) {}
+            override fun onStopTrackingTouch(s: SeekBar?) {}
+        })
 
-        Row {
-            Button(onClick = { vm.send { api, t -> api.previousSong(t) } }) { Text("<<") }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { vm.send { api, t -> api.togglePlay(t) } }) { Text("Play/Pause") }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { vm.send { api, t -> api.nextSong(t) } }) { Text(">>") }
+        findViewById<Button>(R.id.btn_connect).setOnClickListener {
+            vm.pcIp = findViewById<EditText>(R.id.et_ip).text.toString()
+            vm.login()
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Hlasitost")
-        Slider(
-            value = 50f,
-            onValueChange = { vm.send { api, t -> api.setVolume(t, VolumeRequest(it.toInt())) } },
-            valueRange = 0f..100f
-        )
+        btnPlay.setOnClickListener { vm.sendCommand { api, t -> api.togglePlay(t) } }
+        findViewById<ImageButton>(R.id.btn_next).setOnClickListener { vm.sendCommand { api, t -> api.nextSong(t) } }
+        findViewById<ImageButton>(R.id.btn_prev).setOnClickListener { vm.sendCommand { api, t -> api.previousSong(t) } }
     }
 }
