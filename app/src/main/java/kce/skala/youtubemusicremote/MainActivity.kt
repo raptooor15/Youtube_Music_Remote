@@ -10,10 +10,13 @@ import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import coil.load
 
 class MainActivity : AppCompatActivity() {
     private lateinit var vm: MainViewModel
+    private lateinit var qAdapter: QueueAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -25,14 +28,22 @@ class MainActivity : AppCompatActivity() {
 
         vm = ViewModelProvider(this)[MainViewModel::class.java]
 
-        val etIp = findViewById<EditText>(R.id.et_ip)
-        val seekVolume = findViewById<SeekBar>(R.id.seek_volume)
-        val seekProgress = findViewById<SeekBar>(R.id.seek_progress)
-
-        // Načtení IP
+        // --- IP PAMĚŤ ---
         val prefs = getSharedPreferences("ytm_prefs", Context.MODE_PRIVATE)
-        etIp.setText(prefs.getString("last_ip", "192.168.0.104"))
+        val etIp = findViewById<EditText>(R.id.et_ip)
+        etIp.setText(prefs.getString("last_ip", ""))
 
+        // --- UP NEXT ---
+        val rvQueue = findViewById<RecyclerView>(R.id.rv_queue)
+        qAdapter = QueueAdapter()
+        rvQueue.layoutManager = LinearLayoutManager(this)
+        rvQueue.adapter = qAdapter
+
+        setupObservers(prefs)
+        setupListeners()
+    }
+
+    private fun setupObservers(prefs: android.content.SharedPreferences) {
         vm.isConnected.observe(this) { connected ->
             if (connected) {
                 findViewById<View>(R.id.layout_connect).visibility = View.GONE
@@ -46,47 +57,39 @@ class MainActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.tv_title).text = it.title
                 findViewById<TextView>(R.id.tv_artist).text = it.artist
                 findViewById<ImageView>(R.id.iv_album_art).load(it.imageSrc)
-                findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.btn_play_pause)
-                    .setImageResource(if (it.isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause)
 
+                val seekProgress = findViewById<SeekBar>(R.id.seek_progress)
                 seekProgress.max = it.songDuration
                 seekProgress.progress = it.elapsedSeconds
+
+                // Oprava zobrazení času
                 findViewById<TextView>(R.id.tv_time_elapsed).text = formatTime(it.elapsedSeconds)
                 findViewById<TextView>(R.id.tv_time_total).text = formatTime(it.songDuration)
             }
         }
 
-        // --- SYNCHRONIZACE HLASITOSTI ---
-        vm.currentVolume.observe(this) { vol ->
-            seekVolume.progress = vol
+        vm.queueItems.observe(this) { items ->
+            qAdapter.submitList(items)
         }
 
-        seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            var lastSentValue = -1
+        vm.currentVolume.observe(this) { vol ->
+            findViewById<SeekBar>(R.id.seek_volume).progress = vol
+        }
+    }
 
-            override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
-                if (fromUser && Math.abs(p - lastSentValue) > 2) { // Posílat jen při změně o víc než 2%
-                    vm.setVolumeOptimistic(p)
-                    lastSentValue = p
-                }
-            }
-            override fun onStartTrackingTouch(s: SeekBar?) {}
-            override fun onStopTrackingTouch(s: SeekBar?) {
-                s?.let { vm.setVolumeOptimistic(it.progress) }
-            }
-        })
-
-        // --- PŘIPOJENÍ A OSTATNÍ ---
+    private fun setupListeners() {
         findViewById<Button>(R.id.btn_connect).setOnClickListener {
-            vm.sendOflineIp(etIp.text.toString())
+            vm.pcIp = findViewById<EditText>(R.id.et_ip).text.toString()
             vm.login()
         }
 
-        findViewById<View>(R.id.btn_play_pause).setOnClickListener { vm.togglePlayOptimistic() }
-        findViewById<View>(R.id.btn_next).setOnClickListener { vm.sendCommand { api, t -> api.nextSong(t) } }
-        findViewById<View>(R.id.btn_prev).setOnClickListener { vm.sendCommand { api, t -> api.previousSong(t) } }
+        vm.queueItems.observe(this) { items ->
+            // Toto pošle ty testovací (nebo reálné) songy do adaptéru
+            qAdapter.submitList(items)
+        }
 
-        seekProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        // Ovládání času (Seek)
+        findViewById<SeekBar>(R.id.seek_progress).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
                 if (fromUser) findViewById<TextView>(R.id.tv_time_elapsed).text = formatTime(p)
             }
@@ -95,6 +98,19 @@ class MainActivity : AppCompatActivity() {
                 s?.let { vm.sendCommand { api, t -> api.seekTo(t, SeekRequest(it.progress)) } }
             }
         })
+
+        // Ovládání hlasitosti
+        findViewById<SeekBar>(R.id.seek_volume).setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
+                if (fromUser) vm.setVolumeOptimistic(p)
+            }
+            override fun onStartTrackingTouch(s: SeekBar?) {}
+            override fun onStopTrackingTouch(s: SeekBar?) {}
+        })
+
+        findViewById<View>(R.id.btn_play_pause).setOnClickListener { vm.togglePlayOptimistic() }
+        findViewById<View>(R.id.btn_next).setOnClickListener { vm.sendCommand { api, t -> api.nextSong(t) } }
+        findViewById<View>(R.id.btn_prev).setOnClickListener { vm.sendCommand { api, t -> api.previousSong(t) } }
     }
 
     private fun hideKeyboard() {

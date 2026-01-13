@@ -1,176 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:paddingTop="32dp"
-    android:paddingBottom="32dp"
-    tools:context=".MainActivity">
+    android:background="#000000">
 
-    <LinearLayout
-        android:id="@+id/layout_connect"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="#000000"
-        android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:paddingBottom="80dp">
 
-        <EditText
-            android:id="@+id/et_ip"
+        <LinearLayout
+            android:id="@+id/layout_connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            app:layout_constraintTop_toTopOf="parent">
+            <EditText android:id="@+id/et_ip" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="IP" android:textColor="#FFF"/>
+            <Button android:id="@+id/btn_connect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OK" android:backgroundTint="#F00"/>
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_album"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="IP Adresa PC"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#888888"
-            android:backgroundTint="#FF0000" />
+            android:layout_height="0dp"
+            android:layout_margin="32dp"
+            app:cardCornerRadius="12dp"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintTop_toBottomOf="@id/layout_connect"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <ImageView android:id="@+id/iv_album_art" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:background="#1A1A1A"/>
+        </androidx.cardview.widget.CardView>
 
-        <Button
-            android:id="@+id/btn_connect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OK"
-            android:layout_marginStart="8dp"
-            android:backgroundTint="#FF0000"
-            android:textColor="#000000" />
-    </LinearLayout>
+        <TextView android:id="@+id/tv_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:paddingHorizontal="32dp" android:textColor="#FFF" android:textSize="22sp" android:textStyle="bold" app:layout_constraintTop_toBottomOf="@id/card_album"/>
+        <TextView android:id="@+id/tv_artist" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingHorizontal="32dp" android:textColor="#AAA" android:textSize="16sp" app:layout_constraintTop_toBottomOf="@id/tv_title"/>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_album"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="32dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintTop_toBottomOf="@id/layout_connect"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        <SeekBar android:id="@+id/seek_progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:progressTint="#FFF" android:thumbTint="#FFF" app:layout_constraintTop_toBottomOf="@id/tv_artist"/>
 
-        <ImageView
-            android:id="@+id/iv_album_art"
+        <TextView android:id="@+id/tv_time_elapsed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#AAA" app:layout_constraintStart_toStartOf="@id/seek_progress" app:layout_constraintTop_toBottomOf="@id/seek_progress"/>
+        <TextView android:id="@+id/tv_time_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#AAA" app:layout_constraintEnd_toEndOf="@id/seek_progress" app:layout_constraintTop_toBottomOf="@id/seek_progress"/>
+
+        <LinearLayout android:id="@+id/layout_playback_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" app:layout_constraintTop_toBottomOf="@id/tv_time_elapsed">
+            <ImageButton android:id="@+id/btn_prev" android:layout_width="56dp" android:layout_height="56dp" android:src="@android:drawable/ic_media_previous" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#FFF"/>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton android:id="@+id/btn_play_pause" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginHorizontal="24dp" android:src="@android:drawable/ic_media_play" app:backgroundTint="#222" app:tint="#FFF" app:fabCustomSize="72dp" app:maxImageSize="36dp"/>
+            <ImageButton android:id="@+id/btn_next" android:layout_width="56dp" android:layout_height="56dp" android:src="@android:drawable/ic_media_next" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#FFF"/>
+        </LinearLayout>
+
+        <SeekBar android:id="@+id/seek_volume" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="24dp" android:progressTint="#F00" android:thumbTint="#F00" app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#121212"
+        app:behavior_peekHeight="70dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        <View android:layout_width="40dp" android:layout_height="4dp" android:layout_marginTop="8dp" android:background="#444" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
+        <TextView android:id="@+id/tv_up_next_label" android:layout_width="match_parent" android:layout_height="70dp" android:gravity="center_vertical" android:paddingStart="24dp" android:text="UP NEXT" android:textColor="#FFF" android:textStyle="bold" app:layout_constraintTop_toTopOf="parent"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_queue"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:background="#1A1A1A" />
-    </androidx.cardview.widget.CardView>
+            android:layout_marginTop="10dp"
+            android:background="#121212"
+            android:clipToPadding="false"
+            android:paddingBottom="100dp" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/tv_title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="32dp"
-        android:text="Název skladby"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintTop_toBottomOf="@id/card_album"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_artist"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:text="Umělec"
-        android:textColor="#AAAAAA"
-        android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <SeekBar
-        android:id="@+id/seek_progress"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="30dp"
-        android:layout_marginTop="32dp"
-        android:progressTint="#FFFFFF"
-        android:thumbTint="#FFFFFF"
-        android:paddingStart="0dp"
-        android:paddingEnd="0dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_artist"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/tv_time_elapsed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0:00"
-        android:textColor="#AAAAAA"
-        android:textSize="12sp"
-        app:layout_constraintTop_toBottomOf="@id/seek_progress"
-        app:layout_constraintStart_toStartOf="@id/seek_progress" />
-
-    <TextView
-        android:id="@+id/tv_time_total"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0:00"
-        android:textColor="#AAAAAA"
-        android:textSize="12sp"
-        app:layout_constraintTop_toBottomOf="@id/seek_progress"
-        app:layout_constraintEnd_toEndOf="@id/seek_progress" />
-
-    <LinearLayout
-        android:id="@+id/layout_playback_controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_time_elapsed">
-
-        <ImageButton
-            android:id="@+id/btn_prev"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="#FFFFFF" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/btn_play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="32dp"
-            android:src="@android:drawable/ic_media_play"
-            app:backgroundTint="#202020"
-            app:fabCustomSize="80dp"
-            app:maxImageSize="40dp"
-            app:tint="#FFFFFF"
-            app:elevation="0dp"
-            app:borderWidth="0dp"/>
-
-        <ImageButton
-            android:id="@+id/btn_next"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_next"
-            app:tint="#FFFFFF" />
-    </LinearLayout>
-
-    <SeekBar
-        android:id="@+id/seek_volume"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginBottom="40dp"
-        android:max="100"
-        android:progressTint="#FF0000"
-        android:thumbTint="#FF0000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
